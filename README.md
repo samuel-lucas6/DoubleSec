@@ -1,3 +1,6 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/samuel-lucas6/DoubleSec/blob/main/LICENSE)
+[![CodeQL](https://github.com/samuel-lucas6/DoubleSec/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/samuel-lucas6/DoubleSec/actions)
+
 # DoubleSec
 DoubleSec is a simple, double-paranoid encryption library inspired by [TripleSec](https://keybase.io/triplesec/). It encrypts data with XChaCha20 and AES-CTR to account for a future compromise of one of these ciphers.
 
