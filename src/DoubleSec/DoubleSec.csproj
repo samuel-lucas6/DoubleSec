@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Copyright>Copyright (c) 2021 Samuel Lucas</Copyright>
+    <Authors>Samuel Lucas</Authors>
+    <Description>A simple, double-paranoid encryption library.</Description>
+    <PackageProjectUrl>https://github.com/samuel-lucas6/DoubleSec</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/samuel-lucas6/DoubleSec</RepositoryUrl>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Sodium.Core" Version="1.2.3" />
+  </ItemGroup>
+
+</Project>
