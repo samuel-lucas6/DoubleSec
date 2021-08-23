@@ -4,17 +4,17 @@
 # DoubleSec
 DoubleSec is a simple, double-paranoid encryption library inspired by [TripleSec](https://keybase.io/triplesec/). It encrypts data with XChaCha20 and AES-CTR to account for a future compromise of one of these ciphers.
 
-To make things simple, you just need to pass in a message and a password or shared secret. DoubleSec derives keys using Argon2id when using a password and salted BLAKE2b when using a shared secret. Then HMAC-SHA512 and BLAKE2b-512 are used to authenticate the ciphertext and headers.
+To make things simple, you just need to pass in a message and a password or shared secret. DoubleSec derives keys using Argon2id when using a password and salted BLAKE2b when using a shared secret. Then HMAC-SHA512 and keyed BLAKE2b-512 are used to authenticate the ciphertext and headers.
 
 ## FAQ
 ### Why would I use cascade encryption?
 Example use cases include storing data for a long period of time and sharing data with a remote server, meaning you cannot guarantee that that data will ever be deleted. In these scenarios, cascade encryption arguably provides an additional layer of protection. However, [many](https://blog.cryptographyengineering.com/2012/02/02/multiple-encryption/) argue that it solves a problem that *mostly* does not exist. When you need speed, you should avoid cascade encryption.
 
 ### Why should I use this library?
-Because it improves on [TripleSec](https://keybase.io/triplesec/) in several respects. For instance, XChaCha20 is used instead of XSalsa20, Argon2id is used instead of scrypt, stronger password hashing parameters are used, the authentication tags are in the typical position, and BLAKE2b is faster than HMAC-SHA3.
+Because it improves on [TripleSec](https://keybase.io/triplesec/) in several respects. For instance, XChaCha20 is used instead of XSalsa20, Argon2id is used instead of scrypt, stronger password hashing parameters are used, the authentication tags are in the typical position, and keyed BLAKE2b-512 is faster than HMAC-SHA3.
 
 ### Is this provably secure?
-As noted by the authors of [TripleSec](https://keybase.io/triplesec/), there is not an exact proof of security for cascade encryption using stream ciphers. However, the consensus is that this encryption can only be broken if all of the algorithms are broken. Both HMAC-SHA512 and BLAKE2b would have to be broken in order to malleate a message, meaning DoubleSec has IND-CCA2 security.
+As noted by the authors of [TripleSec](https://keybase.io/triplesec/), there is not an exact proof of security for cascade encryption using stream ciphers. However, the consensus is that this encryption can only be broken if all of the algorithms are broken. Both HMAC-SHA512 and keyed BLAKE2b-512 would have to be broken in order to malleate a message, meaning DoubleSec has IND-CCA2 security.
 
 ### Is there a streaming interface?
 Not at the moment. This might be worked on in the future. However, if you want speed, then you should avoid cascade encryption.
@@ -27,8 +27,10 @@ Not at the moment. This might be worked on in the future. However, if you want s
 3. Click on the ```Project``` tab and ```Add Project Reference...``` in Visual Studio.
 4. Go to ```Browse```, click the ```Browse``` button, and select the downloaded DLL file.
 
+Note that the [libsodium](https://doc.libsodium.org/) library requires the [Visual C++ Redistributable for Visual Studio 2015-2019](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) to work on Windows. If you want your program to be portable, then you must keep the relevant (x86 or x64) ```vcruntime140.dll``` file in the same folder as your executable on Windows.
+
 ### Password
-⚠️**WARNING: Always use a strong password (20+ random characters or a 6+ random word passphrase).**
+⚠️**WARNING: Always use a strong password (20+ random characters or an 8+ random word passphrase).**
 ```c#
 // The password should ideally come from a char array since strings are immutable
 byte[] password = Encoding.UTF8.GetBytes("Upper-Correct-Breeder-Uncle-Poise-Wilt9");
@@ -62,7 +64,7 @@ byte[] ciphertext = DoubleSecV1.EncryptUsingSharedSecret(sharedSecret, message);
 - `iv`: a random initialization vector used as the counter for AES-CTR (16 bytes).
 - `ciphertext`: `AesCTR.Encrypt(XChaCha20.Encrypt(plaintext))` (length of the message).
 - `hmacTag`: the HMAC-SHA512 tag for the ciphertext and headers (64 bytes).
-- `blake2bTag`: the BLAKE2b-512 tag for the ciphertext and headers (64 bytes).
+- `blake2bTag`: the keyed BLAKE2b-512 tag for the ciphertext and headers (64 bytes).
 
 ### Algorithms
 DoubleSec encrypts data in four steps:
@@ -73,11 +75,11 @@ DoubleSec encrypts data in four steps:
 
 3. **Cascade encryption**: the plaintext message is encrypted using XChaCha20, with the derived encryption key and randomly generated nonce. The nonce is then prepended to the ciphertext. Next, AES-CTR is used to encrypt the XChaCha20 nonce and ciphertext with the derived encryption key and randomly generated IV. The AES-CTR IV and headers (magic bytes, version, and salt) are then prepended to the AES-CTR ciphertext.
 
-4. **Authentication**: the headers and AES-CTR encrypted ciphertext are authenticated using HMAC-SHA512 and BLAKE2b-512 with different keys. These 512-bit authentication tags are then appended to the ciphertext.
+4. **Authentication**: the headers and AES-CTR encrypted ciphertext are authenticated using HMAC-SHA512 and keyed BLAKE2b-512 with different keys. These 512-bit authentication tags are then appended to the ciphertext.
 
 ### Considerations
 This design shares the same benefits as [TripleSec](https://keybase.io/triplesec/) over Bruce Shneier's recommendation in *Applied Cryptography* (Section 15.8):
 - DoubleSec encrypts the inner nonce to avoid exposing an input unnecessarily. This seems sensible, but it has not been proven that this makes the scheme more secure.
 - The output is the same size as the plaintext message plus the length of the headers and authentication tags. Whilst this does not hide the length of the plaintext, one could pad the message before encryption if this was a concern.
 
-Furthermore, like [TripleSec](https://keybase.io/triplesec/), DoubleSec protects against a break in HMAC-SHA512 by also using BLAKE2b-512 for authentication. Although BLAKE2b is more similar to SHA2 than SHA3, it is faster than SHA3, with the same practical level of security. BLAKE2b also appears to have seen more adoption than SHA3, likely due to its performance in software.
+Furthermore, like [TripleSec](https://keybase.io/triplesec/), DoubleSec protects against a break in HMAC-SHA512 by also using keyed BLAKE2b-512 for authentication. Although BLAKE2b is more similar to SHA2 than SHA3, it is faster than SHA3, with the same practical level of security. BLAKE2b also appears to have seen more adoption than SHA3, likely due to its performance in software.
